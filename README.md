@@ -15,7 +15,7 @@
 
 ```bash
 git clone https://github.com/luctinoco/pnad-etl-flask-airflow-postgres.git
-cd pnad-educacao
+cd pnad-etl-flask-airflow-postgres
 ```
 
 ### 2. Configuração de Ambiente
@@ -32,9 +32,7 @@ cd pnad-educacao
    FERNET_KEY=U10f2LLhEgYVBv2bw7AsPMHNIi0yj6A3oPWnNk0_XRc=
    ```
 
-2. Adicione `.env` ao `.gitignore` para evitar versionamento de credenciais.
-
-### 3. Construção e Inicialização
+### 2. Construção e Inicialização
 
 Para construir e subir todos os serviços do zero:
 
@@ -164,15 +162,14 @@ docker-compose up --build
 
 ## 📦 Principais Dependências
 
-| Pacote                | Função                                       |
-|-----------------------|----------------------------------------------|
-| pandas, numpy         | Manipulação e análise de dados               |
-| SQLAlchemy, psycopg2  | Conexão e operações com PostgreSQL           |
-| requests              | Download automático de arquivos              |
-| openpyxl, xlrd        | Leitura e conversão de arquivos Excel        |
-| Flask                 | Servidor Web e API                           |
-| Apache Airflow        | Orquestração de tarefas                      |
-| python-dotenv         | Carregamento de variáveis de ambiente        |
+| **Pacote**                      | **Função**                                                       |
+| ------------------------------- | ---------------------------------------------------------------- |
+| `pandas`, `numpy`               | Manipulação e análise de dados                                   |
+| `SQLAlchemy`, `psycopg2-binary` | Conexão e operações com banco PostgreSQL                         |
+| `requests`                      | Download automático de arquivos                                  |
+| `openpyxl`, `xlrd`              | Leitura e conversão de arquivos Excel (`.xlsx`, `.xls`)          |
+| `flask`                         | Servidor Web e API                                               |
+| `python-dotenv`                 | Carregamento de variáveis de ambiente a partir do arquivo `.env` |
 
 Consulte o arquivo `requirements.txt` para versões completas.
 
