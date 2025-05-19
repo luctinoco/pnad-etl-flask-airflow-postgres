@@ -65,18 +65,18 @@ docker-compose up --build
   Servidor Flask que expõe:
   - Rota `/` para renderizar o template `index.html`.  
   - API `/api/analise-descritiva` que executa queries no PostgreSQL e retorna JSON para os gráficos.  
-  - Mapeamentos estáticos (UF, Rede de Ensino) e cálculo de estatísticas via NumPy. citeturn1file0
+  - Mapeamentos estáticos (UF, Rede de Ensino) e cálculo de estatísticas via NumPy.
 
 - **`templates/index.html`**  
   - Layout responsivo com HTML/CSS para exibir abas de navegação.  
   - Espaços para gráficos via `<canvas>` e painel de estatísticas.  
-  - Estilos customizados para cores, fontes e responsividade. citeturn1file1
+  - Estilos customizados para cores, fontes e responsividade.
 
 - **`static/app.js`**  
   - Lógica JavaScript para:
     - Buscar dados da API (`/api/analise-descritiva`).  
     - Renderizar gráfico de barras empilhadas (Frequência Escolar) e gráfico de pizza (Rede de Ensino) usando Chart.js.  
-    - Gerenciar abas e exibir estatísticas no painel. citeturn1file2
+    - Gerenciar abas e exibir estatísticas no painel.
 
 ---
 
