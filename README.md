@@ -11,7 +11,7 @@
 - Docker  
 - Docker Compose  
 - Git
--  Docker Desktop com **no mínimo 8GB de memória** alocada (configurar em Docker Desktop > Preferences > Resources > Memory)  
+-  Docker Desktop com **no mínimo 8GB de memória** alocada
 
 ```bash
 git clone https://github.com/lucastinoco/pnad-educacao.git
