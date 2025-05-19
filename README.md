@@ -182,7 +182,6 @@ Consulte o arquivo `requirements.txt` para versões completas.
 ## 📄 Licença
 
 Dados públicos do IBGE – PNAD Contínua.  
-Projeto de caráter educacional.
 
 ---
 
