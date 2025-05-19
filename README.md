@@ -14,7 +14,7 @@
 -  Docker Desktop com **no mínimo 8GB de memória** alocada
 
 ```bash
-git clone https://github.com/lucastinoco/pnad-educacao.git
+git clone https://github.com/luctinoco/pnad-etl-flask-airflow-postgres.git
 cd pnad-educacao
 ```
 
