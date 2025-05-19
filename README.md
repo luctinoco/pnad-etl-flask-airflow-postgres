@@ -55,8 +55,6 @@ docker-compose up --build
 
 - **Dashboard Flask**  
   - URL: http://localhost:5000  
-  - Filtros disponíveis: UF, Sexo, Cor/Raça, Região  
-
 ---
 
 ## 👨‍💻 Componentes do Projeto
@@ -152,7 +150,7 @@ docker-compose up --build
 
 - **Acesso ao PostgreSQL**  
   ```bash
-  docker exec -it pnad-educacao_postgres_1 psql -U pnad_user -d pnad_db
+  docker exec -it pnad-educacao_postgres_1 psql -U airflow -d pnad_db
   ```
 
 - **Reinicialização Completa**  
