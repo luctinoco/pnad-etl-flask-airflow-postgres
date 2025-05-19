@@ -112,6 +112,33 @@ docker-compose up --build
 
 ---
 
+## 📂 Estrutura de Pastas
+
+```text
+.
+├── app/                       # Aplicação Flask: backend e frontend
+│   ├── app.py                 # Servidor Flask
+│   ├── static/                # Assets estáticos (JS, CSS)
+│   │   └── app.js
+│   └── templates/             # Modelos HTML
+│       └── index.html
+├── etl_pnad/                  # Módulos Python do pipeline ETL
+│   ├── download.py            # Download de microdados e dicionário
+│   ├── dict_loader.py         # Geração de dicionário no PostgreSQL (pnad_dict)
+│   ├── loader.py              # Carregamento de staging e criação de pnad_educacao
+│   ├── transform.py           # Transformações de dados e schema
+│   └── pnad_educacao_dag.py   # DAG do Airflow para orquestração
+├── imagens/                   # Exemplos de gráficos e imagens de apoio
+├── docker-compose.yml         # Definição de serviços Docker
+├── Dockerfile.airflow         # Imagem customizada para Apache Airflow
+├── Dockerfile.flask           # Imagem customizada para Flask
+├── requirements.txt           # Lista de dependências Python
+├── LICENSE                    # Licença do projeto
+└── README.md                  # Documentação e guia de execução
+```
+
+---
+
 ## 🛠️ Execução e Monitoramento
 
 - **Ativar DAG**  
@@ -158,6 +185,22 @@ Dados públicos do IBGE – PNAD Contínua.
 Projeto de caráter educacional.
 
 ---
+
+
+---
+
+## 📈 Exemplos de Gráficos
+
+A seguir, dois exemplos gerados pela aplicação para ilustrar a visualização de dados:
+
+| Gráfico de Pizza - Rede de Ensino | Resumo Estatístico - Frequência Escolar por UF |
+|:---------------------------------:|:----------------------------------------------:|
+| ![Gráfico de Pizza](imagens/pie_chart.png) | ![Resumo Estatístico](imagens/status.png) |
+
+> As imagens estão disponíveis em `imagens/` ou no repositório:
+> - `imagens/pie_chart.png`
+> - `imagens/status.png`
+
 
 🔗 **Contribuições e Issues**  
 Abra uma issue em https://github.com/lucastinoco/pnad-educacao/issues  
