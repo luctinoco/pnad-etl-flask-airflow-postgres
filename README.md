@@ -200,4 +200,4 @@ A seguir, dois exemplos gerados pela aplicação para ilustrar a visualização 
 
 
 🔗 **Contribuições e Issues**  
-Abra uma issue em https://github.com/lucastinoco/pnad-educacao/issues  
+Abra uma issue em [issues](https://github.com/luctinoco/pnad-etl-flask-airflow-postgres/issues)  
