@@ -145,4 +145,4 @@ docker exec -it postgres psql -U pnad_user -d pnad_db
 
 ## 📄 Licença
 
-Projeto de uso educacional e demonstrativo com dados públicos da [PNAD Contínua - IBGE](https://www.ibge.gov.br/).
+Projeto demonstrativo com dados públicos da [PNAD Contínua - IBGE](https://www.ibge.gov.br/).
