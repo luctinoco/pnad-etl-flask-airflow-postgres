@@ -49,7 +49,7 @@ docker-compose up --build
 
 - **Apache Airflow**  
   - URL: http://localhost:8080  
-  - Login: `airflow` / `airflow`  
+  - Login: `admin` / `admin`  
   > Você pode criar usuários adicionais dentro do container.
 
 - **Dashboard Flask**  
