@@ -22,13 +22,13 @@ cd pnad-educacao
 1. Crie um arquivo `.env` na raiz do projeto e inclua:
 
    ```env
-   POSTGRES_USER=pnad_user
-   POSTGRES_PASSWORD=pnad_pass
+   POSTGRES_USER=airflow
+   POSTGRES_PASSWORD=airflow
    POSTGRES_DB=pnad_db
    POSTGRES_HOST=postgres
    POSTGRES_PORT=5432
-
-   AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://pnad_user:pnad_pass@postgres:5432/pnad_db
+   PNAD_BASE_DIR=/opt/airflow/data
+   FERNET_KEY=U10f2LLhEgYVBv2bw7AsPMHNIi0yj6A3oPWnNk0_XRc=
    ```
 
 2. Adicione `.env` ao `.gitignore` para evitar versionamento de credenciais.
