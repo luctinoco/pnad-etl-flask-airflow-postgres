@@ -1,0 +1,14 @@
+FROM apache/airflow:2.7.3-python3.10
+
+# ── Copia requirements e instala como usuário airflow ────────────────
+USER airflow
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ── Copia DAGs e módulos ETL ────────────────────────────────────────
+COPY ./etl_pnad /opt/airflow/dags/etl_pnad
+
+# Garante permissão correta para airflow ler o diretório
+USER root
+RUN chown -R airflow: /opt/airflow/dags/etl_pnad
+USER airflow

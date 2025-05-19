@@ -1,0 +1,102 @@
+services:
+
+  postgres:
+    image: postgres:13
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    restart: "no"
+    env_file: .env
+    depends_on:
+      - postgres
+    entrypoint:
+      - bash
+      - -c
+      - |
+        airflow db init &&
+        airflow db upgrade &&
+        airflow users create \
+          --username admin \
+          --password admin \
+          --firstname Air \
+          --lastname Flow \
+          --role Admin \
+          --email admin@example.com
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${FERNET_KEY}
+    volumes:
+      - ./etl_pnad:/opt/airflow/dags/etl_pnad
+      - ./dados:/opt/airflow/dados
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    restart: always
+    env_file: .env
+    depends_on:
+      - airflow-init
+      - postgres
+    command: scheduler
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${FERNET_KEY}
+    volumes:
+      - ./etl_pnad:/opt/airflow/dags/etl_pnad
+      - ./dados:/opt/airflow/dados
+
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    restart: always
+    env_file: .env
+    depends_on:
+      - airflow-init
+      - postgres
+    command: webserver
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${FERNET_KEY}
+    volumes:
+      - ./etl_pnad:/opt/airflow/dags/etl_pnad
+      - ./dados:/opt/airflow/dados
+
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    container_name: flask-app
+    restart: always
+    env_file: .env
+    depends_on:
+      - postgres
+    volumes:
+      - ./app:/app
+      - ./dados:/app/dados
+    ports:
+      - "5000:5000"
+
+volumes:
+  pgdata:
