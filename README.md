@@ -1,152 +1,163 @@
-# 📘 Projeto PNAD Contínua: Educação (4º Trim. 2022)
+# 📘 Projeto PNAD Contínua – Educação (4º Trim. 2022)
 
-> **Objetivo:** Realizar o download, transformação e análise descritiva dos microdados da PNAD Contínua – Educação (4º trimestre de 2022), utilizando Python, SQL, Apache Airflow e Flask para visualização.
-
----
-
-## 🚀 Guia Rápido para Executar o Projeto
-
-Siga estes passos detalhados para executar o projeto localmente.
+**Objetivo:** Desenvolver um pipeline completo para download, transformação e análise descritiva dos microdados da PNAD Contínua – Educação (4º trimestre de 2022), com orquestração via Apache Airflow e visualização interativa via Flask.
 
 ---
 
-### 1. ✅ Pré-requisitos
+## 🚀 Guia Rápido de Execução
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- Git
+### 1. Pré-requisitos
 
-Clone o repositório:
+- Docker  
+- Docker Compose  
+- Git  
+
 ```bash
 git clone https://github.com/lucastinoco/pnad-educacao.git
 cd pnad-educacao
 ```
 
----
+### 2. Configuração de Ambiente
 
-### 2. ⚙️ Configure o Ambiente (`.env`)
+1. Crie um arquivo `.env` na raiz do projeto e inclua:
 
-Crie um arquivo `.env` na raiz com este conteúdo (e lembre-se de adicioná-lo ao `.gitignore` para evitar versionamento acidental):
+   ```env
+   POSTGRES_USER=pnad_user
+   POSTGRES_PASSWORD=pnad_pass
+   POSTGRES_DB=pnad_db
+   POSTGRES_HOST=postgres
+   POSTGRES_PORT=5432
 
-```env
-POSTGRES_USER=pnad_user
-POSTGRES_PASSWORD=pnad_pass
-POSTGRES_DB=pnad_db
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+   AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://pnad_user:pnad_pass@postgres:5432/pnad_db
+   ```
 
-AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://pnad_user:pnad_pass@postgres:5432/pnad_db
-```
+2. Adicione `.env` ao `.gitignore` para evitar versionamento de credenciais.
 
-> **Atenção:** Não adicione espaços em branco ao redor do `=`.
+### 3. Construção e Inicialização
 
----
-
-### 3. 🧱 Construindo e Inicializando Containers
-
-Para executar o projeto completamente do zero, rode:
+Para construir e subir todos os serviços do zero:
 
 ```bash
-docker-compose down -v --remove-orphans  # Encerra todos os containers e remove volumes e dependências órfãs
+docker-compose down -v --remove-orphans
 docker-compose up --build
 ```
 
-A primeira execução pode levar alguns minutos devido ao download dos arquivos IBGE.
+> A primeira execução faz download dos microdados e pode levar alguns minutos.
 
 ---
 
 ## 🌐 Acesso às Interfaces
 
-### 🔧 Apache Airflow
+- **Apache Airflow**  
+  - URL: http://localhost:8080  
+  - Login: `airflow` / `airflow`  
+  > Você pode criar usuários adicionais dentro do container.
 
-- URL: [http://localhost:8080](http://localhost:8080)
-- Login padrão:
-  - Usuário: `airflow`
-  - Senha: `airflow`  
-> _Você pode alterar essas credenciais para maior segurança criando um novo usuário com o comando `airflow users create` no container._
-
-### 📊 Dashboard Flask
-
-- URL: [http://localhost:5000](http://localhost:5000)
-- Explore dados com filtros:
-  - UF, Sexo, Cor/Raça, Região
-  - Frequência Escolar, Curso frequentado, Rede de Ensino, Renda
+- **Dashboard Flask**  
+  - URL: http://localhost:5000  
+  - Filtros disponíveis: UF, Sexo, Cor/Raça, Região  
 
 ---
 
-## ⚙️ Como Funciona o Pipeline ETL
+## 👨‍💻 Componentes do Projeto
 
-O pipeline (`pnad_educacao_etl`) é orquestrado pelo Apache Airflow, seguindo estas etapas:
+- **`app.py`**  
+  Servidor Flask que expõe:
+  - Rota `/` para renderizar o template `index.html`.  
+  - API `/api/analise-descritiva` que executa queries no PostgreSQL e retorna JSON para os gráficos.  
+  - Mapeamentos estáticos (UF, Rede de Ensino) e cálculo de estatísticas via NumPy. citeturn1file0
 
-1. **Download dos microdados PNAD** (.zip do 4º trim. 2022)
-2. **Download e conversão do dicionário** (.xls → .xlsx)
-3. **Carga do dicionário** no PostgreSQL (`pnad_dict`)
-4. **Leitura dos dados brutos** do `.txt` para tabela staging (`pnad_staging_raw`)
-5. **Criação da tabela final tratada** (`pnad_educacao`)
+- **`templates/index.html`**  
+  - Layout responsivo com HTML/CSS para exibir abas de navegação.  
+  - Espaços para gráficos via `<canvas>` e painel de estatísticas.  
+  - Estilos customizados para cores, fontes e responsividade. citeturn1file1
+
+- **`static/app.js`**  
+  - Lógica JavaScript para:
+    - Buscar dados da API (`/api/analise-descritiva`).  
+    - Renderizar gráfico de barras empilhadas (Frequência Escolar) e gráfico de pizza (Rede de Ensino) usando Chart.js.  
+    - Gerenciar abas e exibir estatísticas no painel. citeturn1file2
+
+---
+
+## ⚙️ Pipeline ETL
+
+1. **Download**  
+   - Microdados PNAD (ZIP)  
+   - Dicionário IBGE (XLS → XLSX)
+
+2. **Carga Dicionário**  
+   - Tabela: `pnad_dict`
+
+3. **Staging de Dados Brutos**  
+   - Leitura do `.txt`  
+   - Tabela: `pnad_staging_raw`
+
+4. **Geração da Tabela Final**  
+   - Tabela: `pnad_educacao`  
+   - Mapeamento dinâmico de colunas via `col_index` e `width`
+
+5. **Orquestração**  
+   - Definida no DAG `pnad_educacao_etl` do Airflow
 
 ---
 
 ## 🗃️ Estrutura do Banco de Dados
 
-| Tabela              | Descrição                                         |
-|---------------------|--------------------------------------------------|
-| `pnad_dict`         | Dicionário extraído do `.xls` IBGE               |
-| `pnad_staging_raw`  | Dados brutos do `.txt`                           |
-| `pnad_educacao`     | Dados finais tratados                            |
+| Tabela               | Descrição                                          |
+|----------------------|----------------------------------------------------|
+| `pnad_dict`          | Dicionário extraído do Excel (col_index, width, var_code) |
+| `pnad_staging_raw`   | Dados fix-width lidos do arquivo `.txt`            |
+| `pnad_educacao`      | Dados tratados e estruturados para análise         |
 
 ---
 
-## 🧪 Executando e Monitorando o Pipeline
+## 🛠️ Execução e Monitoramento
 
-- **Ative manualmente** a DAG `pnad_educacao_etl` no Airflow.
-- **Monitore logs** usando:
+- **Ativar DAG**  
+  Dentro do Airflow, ative a DAG `pnad_educacao_etl`.
 
-```bash
-docker logs -f airflow-scheduler
-docker logs -f flask-app
-```
+- **Logs em Tempo Real**  
+  ```bash
+  docker logs -f airflow-scheduler
+  docker logs -f flask-app
+  ```
 
----
+- **Acesso ao PostgreSQL**  
+  ```bash
+  docker exec -it pnad-educacao_postgres_1 psql -U pnad_user -d pnad_db
+  ```
 
-## 🛠️ Troubleshooting e Dicas
-
-- **Reiniciar totalmente o ambiente:**
-```bash
-docker-compose down -v --remove-orphans
-docker system prune -a
-```
-
-- **Acessar o banco PostgreSQL diretamente:**
-```bash
-docker exec -it postgres psql -U pnad_user -d pnad_db
-```
-
-- **Erros comuns:**
-  - Se Airflow não abrir, confirme credenciais padrão (`airflow`/`airflow`).
-  - Se portas estiverem ocupadas, encerre outras instâncias Docker.
+- **Reinicialização Completa**  
+  ```bash
+  docker-compose down -v --remove-orphans
+  docker system prune -a
+  ```
 
 ---
 
-## 📦 Pacotes Utilizados
+## 📦 Principais Dependências
 
-- **pandas, numpy**: Manipulação de dados
-- **SQLAlchemy, psycopg2-binary**: Conexão com PostgreSQL
-- **requests**: Download automático de arquivos
-- **openpyxl, xlrd**: Conversão e manipulação Excel
-- **Flask**: Servidor Web API
-- **Apache Airflow**: Orquestrador de tarefas
-- **dotenv**: Gerenciamento de variáveis de ambiente
+| Pacote                | Função                                       |
+|-----------------------|----------------------------------------------|
+| pandas, numpy         | Manipulação e análise de dados               |
+| SQLAlchemy, psycopg2  | Conexão e operações com PostgreSQL           |
+| requests              | Download automático de arquivos              |
+| openpyxl, xlrd        | Leitura e conversão de arquivos Excel        |
+| Flask                 | Servidor Web e API                           |
+| Apache Airflow        | Orquestração de tarefas                      |
+| python-dotenv         | Carregamento de variáveis de ambiente        |
 
-Veja mais detalhes no [`requirements.txt`](requirements.txt).
+Consulte o arquivo `requirements.txt` para versões completas.
 
 ---
 
 ## 📄 Licença
 
-Projeto educacional usando dados públicos do [IBGE – PNAD Contínua](https://www.ibge.gov.br/).
+Dados públicos do IBGE – PNAD Contínua.  
+Projeto de caráter educacional.
 
 ---
 
-📌 **Dúvidas ou sugestões?** [Abra uma issue no GitHub](https://github.com/seu-usuario/pnad-educacao/issues).
-
----
+🔗 **Contribuições e Issues**  
+Abra uma issue em https://github.com/lucastinoco/pnad-educacao/issues  
