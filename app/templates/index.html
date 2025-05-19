@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Dashboard PNAD Educação</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #003f91;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .tab-btn {
+      background: #eaf1fb;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px 8px 0 0;
+      margin-right: 6px;
+      margin-bottom: -2px;
+      font-weight: 500;
+      font-size: 16px;
+      color: #003f91;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:last-child {
+      margin-right: 0;
+    }
+    .tab-btn.active {
+      background: #fff;
+      border-bottom: 2px solid #007bff;
+      color: #007bff;
+      font-weight: bold;
+      box-shadow: 0 -2px 8px rgba(0,63,145,0.05);
+    }
+    .chart-wrapper {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .chart-canvas {
+      display: block;
+      width: 100%;
+      max-width: 1400px;
+      min-width: 300px;
+      height: 600px !important;
+      max-height: 900px;
+      margin: 0 auto;
+      background-color: #fafafa;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+      padding: 8px;
+    }
+    .stats-panel {
+      margin: 40px auto 0 auto;
+      max-width: 900px;
+      padding: 30px 30px 12px 30px;
+      background: #eaf1fb;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,63,145,0.09);
+      font-size: 18px;
+    }
+    .stats-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .stats-panel th, .stats-panel td {
+      padding: 10px 6px;
+      text-align: left;
+      font-size: 16px;
+      border-bottom: 1px solid #c7dafc;
+    }
+    .stats-panel th {
+      color: #003f91;
+      font-weight: 600;
+    }
+    .stats-panel caption {
+      font-size: 19px;
+      color: #007bff;
+      padding-bottom: 12px;
+      font-weight: bold;
+      caption-side: top;
+      text-align: left;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 6px; }
+      h1 { font-size: 20px; }
+      .chart-canvas { min-height: 180px; height: 260px !important;}
+      .tab-btn { font-size: 13px; padding: 7px 10px; }
+      .stats-panel { font-size: 15px; padding: 15px 2px 4px 2px; }
+      .stats-panel th, .stats-panel td { font-size: 13px; padding: 4px 3px; }
+      .stats-panel caption { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Dashboard Educacional — PNAD Contínua 2022</h1>
+  </header>
+  <div class="container">
+    <div class="tabs">
+      <button id="tab-freq" class="tab-btn active">Frequência Escolar por UF</button>
+      <button id="tab-rede" class="tab-btn">Rede de Ensino</button>
+      <button id="tab-stats" class="tab-btn">Estatísticas</button>
+    </div>
+    <div class="chart-wrapper" id="freqEscolaDiv" style="display:none;">
+      <canvas id="freqEscolaChart" class="chart-canvas"></canvas>
+    </div>
+    <div class="chart-wrapper" id="redeEnsinoDiv" style="display:none;">
+      <canvas id="redeEnsinoChart" class="chart-canvas"></canvas>
+    </div>
+    <div id="statsDiv" class="stats-panel" style="display:none;">
+      <!-- Estatísticas são preenchidas via JS -->
+    </div>
+  </div>
+  <script>
+    let graficosStats = null;
+    document.addEventListener("DOMContentLoaded", () => {
+      setupTabs();
+      loadData();
+    });
+    function setupTabs() {
+      document.getElementById("tab-freq").addEventListener("click", () => showTab("freq"));
+      document.getElementById("tab-rede").addEventListener("click", () => showTab("rede"));
+      document.getElementById("tab-stats").addEventListener("click", () => showTab("stats"));
+      showTab("freq");
+    }
+    function showTab(tab) {
+      document.getElementById("freqEscolaDiv").style.display = (tab === "freq" ? "" : "none");
+      document.getElementById("redeEnsinoDiv").style.display = (tab === "rede" ? "" : "none");
+      document.getElementById("statsDiv").style.display = (tab === "stats" ? "" : "none");
+      document.getElementById("tab-freq").classList.toggle("active", tab === "freq");
+      document.getElementById("tab-rede").classList.toggle("active", tab === "rede");
+      document.getElementById("tab-stats").classList.toggle("active", tab === "stats");
+      if(tab === "stats") renderStats();
+    }
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/analise-descritiva`);
+        if (!res.ok) throw new Error(`API retornou status ${res.status}`);
+        const data = await res.json();
+        if (!data.frequencia_escolar_uf?.length || !data.rede_ensino?.length) {
+          throw new Error("Dados ausentes da API.");
+        }
+        graficosStats = data.graficos_stats || null;
+        drawStackedBarChart(
+          "freqEscolaChart",
+          data.frequencia_escolar_uf,
+          "uf",
+          "frequenta",
+          "percentual",
+          "Frequência Escolar por UF (Sim / Não)"
+        );
+        drawPieChart(
+          "redeEnsinoChart",
+          data.rede_ensino,
+          "rede",
+          "percentual",
+          "Rede de Ensino"
+        );
+      } catch (err) {
+        console.error("❌ Erro ao carregar dados:", err);
+        alert("Erro ao carregar dados. Veja o console.");
+      }
+    }
+    function drawStackedBarChart(canvasId, rows, xKey, stackKey, valueKey, title) {
+      const ctx = document.getElementById(canvasId)?.getContext("2d");
+      if (!ctx) return;
+      if (window[canvasId] && typeof window[canvasId].destroy === "function") {
+        window[canvasId].destroy();
+      }
+      // Agrupar por UF e status de frequência
+      const grouped = {};
+      rows.forEach((row) => {
+        const x = row[xKey];
+        const group = row[stackKey];
+        if (!grouped[group]) grouped[group] = {};
+        grouped[group][x] = (row[valueKey] * 100).toFixed(1);
+      });
+      const ufs = [...new Set(rows.map((r) => r[xKey]))].sort();
+      const stacks = Object.keys(grouped);
+      const colors = ["#4CAF50", "#F44336", "#FFC107"]; // Sim, Não, Ignorado
+      const datasets = stacks.map((stackName, i) => ({
+        label: stackName,
+        data: ufs.map((uf) => grouped[stackName]?.[uf] || 0),
+        backgroundColor: colors[i % colors.length],
+        maxBarThickness: 42
+      }));
+      window[canvasId] = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ufs,
+          datasets,
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`,
+              },
+            },
+            legend: { position: "bottom" },
+          },
+          scales: {
+            x: { stacked: true },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: { callback: (v) => v + "%" },
+            },
+          },
+        },
+      });
+    }
+    function drawPieChart(canvasId, rows, labelKey, valueKey, title) {
+      const ctx = document.getElementById(canvasId)?.getContext("2d");
+      if (!ctx) return;
+      if (window[canvasId] && typeof window[canvasId].destroy === "function") {
+        window[canvasId].destroy();
+      }
+      const labels = rows.map((r) => r[labelKey]);
+      const values = rows.map((r) => (r[valueKey] * 100).toFixed(1));
+      const colors = ["#2196F3", "#FF9800", "#9C27B0"];
+      window[canvasId] = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels,
+          datasets: [{ data: values, backgroundColor: colors }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title },
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${labels[ctx.dataIndex]}: ${values[ctx.dataIndex]}%`,
+              },
+            },
+          },
+        },
+      });
+    }
+    function renderStats() {
+      const div = document.getElementById("statsDiv");
+      if (!graficosStats) {
+        div.innerHTML = "<b>Sem dados estatísticos disponíveis.</b>";
+        return;
+      }
+      const freq = graficosStats.frequencia_escolar || {};
+      const rede = graficosStats.rede_ensino || {};
+      div.innerHTML = `
+        <table>
+          <caption>Resumo Estatístico — Frequência Escolar por UF</caption>
+          <tr><th>UF com maior frequência escolar</th><td>${freq.uf_maior_freq || '-'}</td><td>${freq.maior_freq_percent || '-'}%</td></tr>
+          <tr><th>UF com menor frequência escolar</th><td>${freq.uf_menor_freq || '-'}</td><td>${freq.menor_freq_percent || '-'}%</td></tr>
+          <tr><th>Média nacional de frequência escolar</th><td colspan=2>${freq.media_percent || '-'}%</td></tr>
+          <tr><th>Desvio padrão entre UFs</th><td colspan=2>${freq.desvio_padrao || '-'}</td></tr>
+        </table>
+        <table>
+          <caption>Resumo Estatístico — Rede de Ensino (apenas quem frequenta escola)</caption>
+          <tr><th>Total respondentes</th><td colspan=2>${rede.total_respondentes || '-'}</td></tr>
+          ${Object.keys(rede.resumo||{}).map(k => `
+            <tr><th>${k}</th>
+            <td>${rede.resumo[k].percentual}%</td>
+            <td>${rede.resumo[k].total} alunos</td></tr>
+          `).join("")}
+        </table>
+      `;
+    }
+  </script>
+</body>
+</html>
