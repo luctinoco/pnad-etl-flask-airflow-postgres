@@ -38,7 +38,8 @@ Para construir e subir todos os serviços do zero:
 
 ```bash
 docker-compose down -v --remove-orphans
-docker-compose up --build
+docker system prune -a --volumes -f
+docker compose up --build
 ```
 
 > A primeira execução faz download dos microdados e pode levar alguns minutos.
